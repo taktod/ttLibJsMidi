@@ -22,5 +22,7 @@ https://creativecommons.org/licenses/by-sa/3.0/deed.ja
 とりあえず音源は準備できた。
 
 とりあえずMIDI音源を再生する動作がほしいところ。
-reverveとかのエフェクト(convolverの動作)は全体がけ？
+reverveとかのエフェクト(convolverの動作)は全体がけ
+トラックごとにした方がいいかもしれない。
+
 
