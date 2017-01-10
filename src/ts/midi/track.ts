@@ -129,7 +129,7 @@ export class Track {
       // すでに止まってる。
       return;
     }
-    this.bufferNodes[note].stop();
+    this.bufferNodes[note].stop(0); // iOSだと、ここに0をいれておかないと、うまく処理してくれないみたい。
     this.bufferNodes[note] = null; // nullにして再度再生可能にしておく。
   }
   /**
