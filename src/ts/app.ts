@@ -6,15 +6,15 @@ $(function() {
   var context = new AudioContext();
   var midi = new ttm.MIDI(context);
   midi.refNode().connect(context.destination);
-  midi.loadSoundFont("piano", "/soundfont/MusyngKite/acoustic_grand_piano.jsonp")
+  midi.loadSoundfont("piano", "/soundfont/MusyngKite/acoustic_grand_piano.jsonp")
 //  .then(() => {
-//    return midi.loadSoundFont("drum", "/soundfont/drum/Stark.jsonp");
-//  })
+//    return midi.loadSoundfont("drum", "/soundfont/drum/Stark.jsonp");})
 //  .then(() => {
-//    return midi.loadEffectFont("/soundfont/impulse/impulse.jsonp")})
+//    return midi.loadEffectFont("/soundfont/impulse/impulse.jsonp");})
 //  .then(() => {
-//    return midi.changeEffect("smooth-hall");
-//  })
+//    return midi.changeEffect("smooth-hall");})
+//  .then(() => {
+//    return midi.changeEffect(null);})
   .then(function() {
     $(window).keyup((e) => {
       switch(e.keyCode) {
