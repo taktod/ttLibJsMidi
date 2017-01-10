@@ -1,6 +1,7 @@
 import {Base64Mp3Loader} from "./base64Mp3Loader";
 import {Soundfont} from "./soundfont";
 import {Effector} from "./effector";
+import {Track} from "./track";
 
 export class MIDI {
   private context:AudioContext;
@@ -12,13 +13,6 @@ export class MIDI {
   urlの紐付けとかはsoundfontでやるべき。
   */
   private tracks: {}; // ターゲット名 -> Trackオブジェクト
-  private soundfont:{}; // ターゲット名 -> Soundfontオブジェクト
-  private buffer:{}; // 現在再生しているbufferを記録 noteOffで利用する
-
-  private effectNode:ConvolverNode; // エフェクト動作
-  private effectGain:GainNode; // エフェクトのレベルを調整する。
-
-  private effector:Effector; // 今の所これは配列にせずおいとく。
   // track化したら配列にしないとまずい。
   // 増えすぎるとしにそう・・・まぁなんとかなるだろ。
   /**
@@ -30,129 +24,35 @@ export class MIDI {
     this.context = context;
     this.endNode = context.createDynamicsCompressor();
 
-    this.effectGain = context.createGain();
-    this.effectNode = context.createConvolver();
-    this.effectGain.connect(this.endNode);
-
-    this.soundfont = {};
-    this.buffer = {};
-
-    this.effector = null;
+    this.tracks = {};
   }
-  /**
-   * エフェクト用のフォントをDLする。
-   * @param url 取得先アドレス
-   * @return promise
-   */
-  public loadEffectFont(url:string):Promise<void> {
-    this.changeEffect(null);
-    return new Promise<void>((resolve, reject) => {
-      Effector.load(url)
-      .then((effector:Effector) => {
-        this.effector = effector;
-        resolve();
-      });
-    });
-  }
-  /**
-   * サウンドフォントをDLして、nameに関連づけておく。
-   * @param name 関連づける名前
-   * @param url  DL対象
-   * @return promise
-   */
-  public loadSoundfont(name:string, url:string):Promise<void> {
-    return new Promise<void>((resolve, reject) => {
-      Soundfont.load(this.context, url).then((soundfont:Soundfont) => {
-        this.soundfont[name] = soundfont;
-        resolve();
-      })
-    })
-  }
-  /**
-   * 利用するeffectを変更する。取得したjsonpのeffect名前を指定する。
-   * @param name 変更するeffectの名前を設定
-   */
-  public changeEffect(name:string):Promise<void> {
-    return new Promise<void>((resolve, reject) => {
-      this.effectNode.disconnect(); // 切断しておく。
-      if(!name) {
-        // エフェクトはずす。
-        resolve();
-        return;
-      }
-      // effectからaudioBufferをつくって、それをeffect_nodeに設定しなければならない。
-      this.effector.refAudioBuffer(this.context, name)
-      .then((buffer:AudioBuffer) => {
-        this.effectNode.buffer = buffer;
-        this.effectNode.connect(this.effectGain);
-        resolve();
-      });
-    });
-  }
-  /**
-   * エフェクトのレベルを変更する。127が最大0が最小
-   */
-  public changeEffectLevel(value:number):void {
-    this.effectGain.gain.value = value / 127;
-  }
-  /**
-   * 音を再生する。
-   * @param name  音の関連付け名
-   * @param note  再生する音のid 0 - 127 60が真ん中のドの音
-   * @param value 音の大きさ設定
-   * あとでpitchもいれとくか・・・
-   */
   public noteOn(name:string, note:number, value:number):void {
-    if(!this.context) {
+    if(!this.tracks[name]) {
       return;
     }
-    if(!this.buffer[name]) {
-      this.buffer[name] = {};
-    }
-    if(this.buffer[name][note]) {
-      return;
-    }
-    var soundfont:Soundfont = this.soundfont[name];
-    if(!soundfont) {
-      // soundfontがloadされてない。
-      return;
-    }
-    var buffer:AudioBuffer = soundfont.refAudioBuffer(note);
-    if(!buffer) {
-      // 該当bufferが存在しない。
-      return;
-    }
-    var bufferNode = this.context.createBufferSource();
-    bufferNode.buffer = buffer;
-    var gainNode = this.context.createGain();
-    gainNode.gain.value = value / 127;
-    bufferNode.connect(gainNode);
-
-    gainNode.connect(this.effectNode);
-
-    gainNode.connect(this.endNode);
-    bufferNode.start(0);
-    this.buffer[name][note] = bufferNode;
+    this.tracks[name].noteOn(note, value);
   }
-  /**
-   * 音を止める。
-   * @param name 音の関連付け名
-   * @param note 再生する音のid 0 - 127
-   */
   public noteOff(name:string, note:number):void {
-    if(!this.buffer[name]) {
+    if(!this.tracks[name]) {
       return;
     }
-    if(!this.buffer[name][note]) {
-      return;
-    }
-    this.buffer[name][note].stop();
-    this.buffer[name][note] = null;
+    this.tracks[name].noteOff(note);
   }
   /**
    * 動作nodeを参照する。
    */
   public refNode():AudioNode {
     return this.endNode;
+  }
+  public makeTrack(name:string, url:string):Promise<Track> {
+    return new Promise<Track>((resolve, reject) => {
+      var track = new Track(this.context);
+      track.loadSoundfont(url)
+      .then(() => {
+        this.tracks[name] = track;
+        track.refNode().connect(this.endNode);
+        resolve(track);
+      });
+    });
   }
 }
