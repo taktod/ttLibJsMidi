@@ -1,7 +1,9 @@
 import {Soundfont} from "./soundfont";
 import {Effector} from "./effector";
 
-// トラックのクラス
+/**
+ * 音声トラック
+ */
 export class Track {
   // トラックでsoundfontとeffectorをコントロールしておかなければならない。
   // いままで buffer -> gain -> effect -> gain -> output
@@ -15,7 +17,8 @@ export class Track {
   // buffer -> gain                   -> gain -> output
   // なんか妙だけど、こうしておくか・・・
   // effectをoffにすると、effectをdisconnectする。とする。
-  private context:AudioContext;
+  private context:AudioContext; // とりあえず内部のコンテキスト保持してみたけど、こうすると、途中でcontextがかわったときに困ったことがおきると思われる。
+  // これ・・・でも途中でcontextがかわったら・・・どうなるんだろう・・・そもそも破滅しないか？
   private soundfont:Soundfont;
   private effector:Effector;
 
@@ -24,6 +27,10 @@ export class Track {
   private outputNode:GainNode;
 
   private bufferNodes:{}; // nodeId -> bufferのmap再生中であるかとか判定する。
+  /**
+   * コンストラクタ
+   * @param context AudioContext
+   */
   constructor(context:AudioContext) {
     this.context = context;
     this.soundfont = null;
@@ -34,6 +41,9 @@ export class Track {
     this.effectGain.connect(this.outputNode);
     this.bufferNodes = {};
   }
+  /**
+   * soundfontを読み込みます。
+   */
   public loadSoundfont(url:string):Promise<void> {
     return new Promise<void>((resolve, reject) => {
       Soundfont.load(this.context, url)
@@ -43,6 +53,11 @@ export class Track {
       });
     });
   }
+  /**
+   * effectorを読み込み設定します。
+   * @param name effectorの名前(音源データの中のどの音を使うかを指定します。)
+   * @param url  effectorの音源データ
+   */
   public setEffector(name:string, url:string):Promise<void> {
     return new Promise<void>((resolve, reject) => {
       if(!name) {
@@ -61,11 +76,24 @@ export class Track {
       }); // catchしてeffectNodeをdisconnectしておいた方がいいかな・・・
     });
   }
+  /**
+   * effectの強さを指定します。
+   * @param value 0-127
+   */
   public setEffectLevel(value:number):void {
     this.effectGain.gain.value = value / 127;
   }
+  /**
+   * 音を鳴らします。
+   * @param note  音のたかさ
+   * @param value 音の強さ 0-127
+   */
   public noteOn(note:number, value:number):void {
     if(!this.context) {
+      return;
+    }
+    if(value == 0) {
+      this.noteOff(note);
       return;
     }
     // 現在対象のnoteが再生中であるか確認。再生中なら再生しない。
@@ -92,6 +120,10 @@ export class Track {
     bufferNode.start(0);
     this.bufferNodes[note] = bufferNode;
   }
+  /**
+   * 音を止める。
+   * @param note 止める音の高さ
+   */
   public noteOff(note:number):void {
     if(!this.bufferNodes[note]) {
       // すでに止まってる。
@@ -100,6 +132,9 @@ export class Track {
     this.bufferNodes[note].stop();
     this.bufferNodes[note] = null; // nullにして再度再生可能にしておく。
   }
+  /**
+   * 出力のnodeを参照します。
+   */
   public refNode():AudioNode {
     return this.outputNode;
   }

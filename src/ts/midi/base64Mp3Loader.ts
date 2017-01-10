@@ -1,6 +1,13 @@
-// base64のmp3をloadする動作
-
+/**
+ * base64の独自定義のmp3データを読み込む動作
+ */
 export class Base64Mp3Loader {
+  /**
+   * 読み込みを実施する。
+   * @param context audioContextデータ
+   * @param base    ベースとなる共通項目のデータ
+   * @param data    実データを構成する部分のデータ
+   */
   public static load(context:AudioContext, base:string, data:string):Promise<AudioBuffer> {
     return new Promise<AudioBuffer>((resolve, reject) => {
       var baseElement = base.split(",");

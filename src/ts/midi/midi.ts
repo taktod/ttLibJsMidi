@@ -4,16 +4,10 @@ import {Effector} from "./effector";
 import {Track} from "./track";
 
 export class MIDI {
-  private context:AudioContext;
+  private context:AudioContext; // 動作コンテキスト
   private endNode:DynamicsCompressorNode; // データをまとめる
-
-  /*
-  ここがややこしくなってるので、調整する。
-  name -> soundfontの紐付けはここでやるべき。
-  urlの紐付けとかはsoundfontでやるべき。
-  */
   private tracks: {}; // ターゲット名 -> Trackオブジェクト
-  // track化したら配列にしないとまずい。
+
   // 増えすぎるとしにそう・・・まぁなんとかなるだろ。
   /**
    * コンストラクタ
@@ -26,12 +20,23 @@ export class MIDI {
 
     this.tracks = {};
   }
+  /**
+   * 音を鳴らす。
+   * @param name  対象トラック指定
+   * @param note  対象音の高さ指定
+   * @param value 音の強さ指定
+   */
   public noteOn(name:string, note:number, value:number):void {
     if(!this.tracks[name]) {
       return;
     }
     this.tracks[name].noteOn(note, value);
   }
+  /**
+   * 音を消す
+   * @param name 対象トラック指定
+   * @param note 対象音の高さ指定
+   */
   public noteOff(name:string, note:number):void {
     if(!this.tracks[name]) {
       return;
@@ -44,6 +49,11 @@ export class MIDI {
   public refNode():AudioNode {
     return this.endNode;
   }
+  /**
+   * トラックを作成する
+   * @param name 設定名 参照で利用します。
+   * @param url  soundfontのurl
+   */
   public makeTrack(name:string, url:string):Promise<Track> {
     return new Promise<Track>((resolve, reject) => {
       var track = new Track(this.context);

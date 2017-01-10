@@ -1,14 +1,24 @@
 import {Base64Mp3Loader} from "./base64Mp3Loader";
 
-// soundfontを取り扱う動作
+/**
+ * soundfontを取り扱います。
+ */
 export class Soundfont {
   private static urls:{} = {}; // address -> Soundfontオブジェクト
   private bufferList:{}; // noteId -> AudioBuffer
   public name:string;
+  /**
+   * コンストラクタ
+   */
   constructor() {
     this.name = "";
     this.bufferList = {};
   }
+  /**
+   * データを読み込みます。AudioBufferも準備します。
+   * @param context AudioContext
+   * @param url     soundfontのアドレス
+   */
   private load_(context:AudioContext, url:string):Promise<void> {
     return new Promise<void>((resolve, reject) => {
       // ここにきたら、soundfontをロードしないといけない。
@@ -35,6 +45,12 @@ export class Soundfont {
       document.body.appendChild(script);
     });
   }
+  /**
+   * soundfontを読み込みます。
+   * @param context AudioContext
+   * @param url     soundfontのアドレス
+   * すでに読み込み済みのsoundfontがあれば、それを利用します。
+   */
   public static load(context:AudioContext, url:string):Promise<Soundfont> {
     // すでにurlにロード済みのデータがあるならそれを取得する。
     // ないなら、新たにロードする。
@@ -51,6 +67,9 @@ export class Soundfont {
       });
     });
   }
+  /**
+   * それぞれの音に対応するAudioBufferを参照します。
+   */
   public refAudioBuffer(note:number):AudioBuffer {
     return this.bufferList[note];
   }
