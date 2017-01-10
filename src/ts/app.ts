@@ -20,16 +20,14 @@ $(function() {
   .then((track:ITrack) => {
     piano = track;
     // trackのeffectorを設定する。
-    track.setEffectLevel(100);
-    return track.setEffector("smooth-hall", "/soundfont/impulse/impulse.jsonp");
-    // track.noteOn(80);とかでもいいな・・・
-    // もちろんmidi経由でアクセスしてもいいけど。
+/*    track.setEffectLevel(100);
+    return track.setEffector("smooth-hall", "/soundfont/impulse/impulse.jsonp");*/
   })
-  .then(() => {
+/*  .then(() => {
     return midi.makeTrack("drum", "/soundfont/drum/Stark.jsonp");})
   .then((track:ITrack) => {
     drum = track;
-  })
+  })*/
   .then(() => {
     console.log("ここきてるか？");
     $(window).keyup((e) => {
