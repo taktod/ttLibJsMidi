@@ -20,8 +20,6 @@ export class MIDI {
 
   private effector:Effector; // 今の所これは配列にせずおいとく。
   // track化したら配列にしないとまずい。
-//  private effectUrl:string;
-//  private effectUrls:{}; // url -> effectデータのjson
   // 増えすぎるとしにそう・・・まぁなんとかなるだろ。
   /**
    * コンストラクタ
@@ -31,6 +29,7 @@ export class MIDI {
     // コンテキストは保持しておく。(nodeやbufferをつくるのに使う)
     this.context = context;
     this.endNode = context.createDynamicsCompressor();
+
     this.effectGain = context.createGain();
     this.effectNode = context.createConvolver();
     this.effectGain.connect(this.endNode);
@@ -38,8 +37,6 @@ export class MIDI {
     this.soundfont = {};
     this.buffer = {};
 
-//    this.effectUrls = {};
-//    this.effectUrl = null;
     this.effector = null;
   }
   /**
@@ -56,22 +53,6 @@ export class MIDI {
         resolve();
       });
     });
-/*    return new Promise<void>((resolve, reject) => {
-      // エフェクトデータを取得する。
-      if(typeof(this.effectUrls[url]) === "undefined") {
-        window["callback"] = (data) => {
-          this.effectUrls[url] = data;
-          this.effectUrl = url;
-          resolve();
-        };
-        var script = document.createElement("script");
-        script.src = url;
-        document.body.appendChild(script);
-      }
-      else {
-        resolve();
-      }
-    });*/
   }
   /**
    * サウンドフォントをDLして、nameに関連づけておく。
