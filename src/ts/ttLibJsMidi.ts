@@ -4,9 +4,9 @@ import * as sft from "./midi/soundfont";
 
 export namespace midi {
   export class MIDI extends mid.MIDI{};
-  export class Effetor extends efc.Effector{};
+  export class Effector extends efc.Effector{};
   export class Soundfont extends sft.Soundfont{};
 }
 export class MIDI extends mid.MIDI{};
-export class Effetor extends efc.Effector{};
+export class Effector extends efc.Effector{};
 export class Soundfont extends sft.Soundfont{};
